@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vardiya Planlayıcı</title>
+<link rel="manifest" href="./manifest.json" />
+<meta name="theme-color" content="#14171A" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #14171A;
+    color: #E7EBEC;
+  }
+  .wrap { padding: 28px; max-width: 1100px; margin: 0 auto; }
+  .vp-title { font-family: 'Space Grotesk', sans-serif; }
+  .header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 16px;
+  }
+  .logo-row { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 40px; height: 40px; border-radius: 10px; background: #2F6F63;
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px;
+  }
+  h1 { font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.02em; }
+  .subtitle { margin: 6px 0 0 50px; font-size: 13.5px; font-weight: 700; color: #8B969B; }
+  .weeknav {
+    display: flex; align-items: center; gap: 4px; background: #1D2225;
+    border-radius: 12px; padding: 6px 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .weeknav button {
+    border: none; background: transparent; padding: 8px; border-radius: 8px;
+    cursor: pointer; display: flex; align-items: center; color: #4FB8A3; font-size: 15px;
+  }
+  .weeknav button:hover { background: #262C2F; }
+  .weeknav .today-btn {
+    border: 1px solid #2B3134; background: #1D2225; margin-left: 6px;
+    padding: 6px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: #4FB8A3;
+  }
+  .range-label { font-size: 14px; font-weight: 700; min-width: 210px; text-align: center; font-family: 'Space Grotesk', sans-serif; }
+  .vp-signature {
+    position: fixed; right: 20px; bottom: 16px;
+    font-family: 'Space Grotesk', sans-serif; font-style: normal; font-weight: 700;
+    font-size: 14px; letter-spacing: 0.04em; color: #4FB8A3; z-index: 40; text-transform: uppercase;
+  }
+  .layout { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+  .sidebar {
+    width: 280px; background: #1D2225; border-radius: 14px; padding: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3); flex-shrink: 0;
+  }
+  .sidebar h2, .sidebar h3.section-title {
+    font-size: 13.5px; font-weight: 700; margin: 0; text-transform: uppercase;
+    letter-spacing: 0.04em; color: #A9B3B7; display: flex; align-items: center; gap: 8px;
+  }
+  .add-row { display: flex; gap: 6px; margin: 14px 0; }
+  .add-row input {
+    flex: 1; border: 1px solid #2B3134; border-radius: 8px; padding: 8px 10px;
+    font-size: 13px; outline: none; font-family: inherit; min-width: 0;
+    background: #14171A; color: #E7EBEC;
+  }
+  .add-row button {
+    border: none; background: #2F6F63; color: #fff; border-radius: 8px;
+    padding: 0 12px; cursor: pointer; font-size: 16px; flex-shrink: 0;
+  }
+  .add-row button:hover { opacity: 0.9; }
+  .empty-hint { font-size: 12.5px; color: #7C8689; line-height: 1.5; }
+  .emp-card {
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px dashed #33393C; border-radius: 10px; padding: 8px 10px; margin-bottom: 8px;
+  }
+  .emp-name { font-size: 13px; font-weight: 600; color: #E7EBEC; }
+  .emp-hours { font-size: 11px; color: #7C8689; }
+  .emp-del { border: none; background: transparent; cursor: pointer; color: #E0655B; font-size: 14px; padding: 4px; }
+  .legend { margin-top: 20px; padding-top: 16px; border-top: 1px solid #262C2F; }
+  .legend h3 { margin: 0 0 10px; }
+  .shift-row {
+    display: flex; align-items: center; gap: 6px; font-size: 12.5px; margin-bottom: 8px;
+  }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .shift-row .name { font-weight: 600; flex-shrink: 0; }
+  .shift-row .hours { color: #7C8689; }
+  .shift-row .count { margin-left: auto; color: #7C8689; font-size: 11.5px; }
+  .shift-row .del { border: none; background: transparent; cursor: pointer; color: #E0655B; font-size: 12px; padding: 2px; }
+  .new-shift-form {
+    background: #14171A; border-radius: 10px; padding: 10px; margin-top: 4px; border: 1px solid #262C2F;
+  }
+  .new-shift-form .row1 { display: flex; gap: 6px; margin-bottom: 6px; }
+  .new-shift-form input[type="text"] {
+    flex: 1; border: 1px solid #2B3134; border-radius: 7px; padding: 6px 8px; font-size: 12.5px; font-family: inherit; min-width: 0;
+    background: #1D2225; color: #E7EBEC;
+  }
+  .new-shift-form .row2 { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .new-shift-form input[type="time"] {
+    flex: 1; border: 1px solid #2B3134; border-radius: 7px; padding: 5px 6px; font-size: 12px; font-family: inherit; min-width: 0;
+    background: #1D2225; color: #E7EBEC; color-scheme: dark;
+  }
+  .new-shift-form .arrow { color: #7C8689; font-size: 12px; }
+  .new-shift-form button {
+    width: 100%; border: none; background: #2F6F63; color: #fff; border-radius: 7px;
+    padding: 7px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  }
+  .new-shift-form button:hover { opacity: 0.9; }
+  .grid-panel {
+    flex: 1; min-width: 320px; background: #1D2225; border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3); overflow: hidden;
+  }
+  .grid-empty, .grid-empty-types { padding: 60px; text-align: center; color: #7C8689; font-size: 14px; }
+  .grid-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 720px; }
+  th {
+    text-align: center; padding: 12px 8px; font-size: 11.5px; border-bottom: 1px solid #262C2F; min-width: 82px;
+  }
+  th.emp-col {
+    text-align: left; padding: 12px 16px; font-weight: 700; color: #7C8689;
+    text-transform: uppercase; letter-spacing: 0.04em; position: sticky; left: 0; background: #1D2225; min-width: 140px;
+  }
+  .day-name { font-weight: 700; color: #C7CDCF; }
+  .day-num { color: #7C8689; font-weight: 500; }
+  td.emp-col {
+    padding: 10px 16px; font-size: 13px; font-weight: 600; border-bottom: 1px solid #262C2F;
+    position: sticky; left: 0; background: #1D2225; color: #E7EBEC;
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  }
+  .fill-week-btn {
+    border: 1px solid #2B3134; background: #14171A; color: #7C8689; border-radius: 6px;
+    width: 22px; height: 22px; font-size: 13px; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  .fill-week-btn:hover { color: #4FB8A3; border-color: #4FB8A3; }
+  .popover-heading {
+    padding: 8px 12px 4px; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; color: #7C8689;
+  }
+  td.cell {
+    padding: 6px; text-align: center; border-bottom: 1px solid #262C2F; cursor: pointer; vertical-align: middle;
+  }
+  td.cell:hover { background: #262C2F; }
+  .chip {
+    border-radius: 6px; padding: 6px 4px; font-size: 11px; font-weight: 700; line-height: 1.3;
+    border-left: 3px dashed rgba(255,255,255,0.2);
+  }
+  .chip .range { font-weight: 500; font-size: 10px; opacity: 0.85; }
+  .chip-off {
+    background: #262C2F; color: #A9B3B7; font-style: italic; border-left-style: dashed;
+  }
+  .empty-cell {
+    height: 34px; border-radius: 6px; border: 1px dashed #2B3134;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; color: #40484B;
+  }
+  .popover {
+    position: absolute; z-index: 50; background: #1D2225; border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.45); border: 1px solid #2B3134; overflow: hidden; min-width: 160px;
+    max-height: 260px; overflow-y: auto;
+  }
+  .popover button {
+    display: flex; align-items: center; gap: 8px; width: 100%; border: none; background: #1D2225;
+    padding: 9px 12px; font-size: 12.5px; font-weight: 600; text-align: left; cursor: pointer; font-family: inherit;
+    color: #E7EBEC;
+  }
+  .popover button:hover { background: #262C2F; }
+  .popover .dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+  .popover .muted { color: #7C8689; font-weight: 500; }
+  .popover .off-btn { border-top: 1px solid #262C2F; color: #A9B3B7; }
+  .popover .clear-btn { border-top: 1px solid #262C2F; color: #E0655B; }
+  .toast {
+    position: fixed; bottom: 16px; right: 16px; background: #C1443C; color: #fff;
+    padding: 8px 14px; border-radius: 8px; font-size: 12.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .share-btn {
+    border: 1px solid #2B3134; background: #1D2225; color: #A9B3B7; border-radius: 8px;
+    padding: 6px 10px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .share-btn:hover { border-color: #4FB8A3; color: #4FB8A3; }
+  .share-btn.primary { background: #2F6F63; border-color: #2F6F63; color: #fff; }
+  .share-btn.primary:hover { opacity: 0.9; color: #fff; }
+  .share-btn:disabled { opacity: 0.5; cursor: default; }
+  .preview-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .preview-box {
+    background: #1D2225; border-radius: 14px; padding: 16px; max-width: 480px; width: 100%;
+    max-height: 90vh; overflow-y: auto; box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  }
+  .preview-box img { width: 100%; border-radius: 10px; display: block; }
+  .preview-hint { font-size: 12.5px; color: #A9B3B7; margin: 12px 0 0; line-height: 1.5; }
+  .preview-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .preview-actions .share-btn { flex: 1; padding: 10px 12px; font-size: 13px; }
+  .note-bar { margin-bottom: 16px; }
+  .note-bar textarea {
+    width: 100%; min-height: 44px; resize: vertical; border: 1px solid #2B3134; border-radius: 10px;
+    background: #1D2225; color: #E7EBEC; padding: 10px 12px; font-size: 13px; font-family: inherit;
+    outline: none; box-sizing: border-box;
+  }
+  .note-bar textarea::placeholder { color: #6B7674; }
+  .capture-note {
+    background: rgba(79,184,163,0.14); border-left: 3px solid #4FB8A3; border-radius: 8px;
+    padding: 12px 14px; margin: 16px 16px 0; font-size: 14px; font-weight: 600; color: #E7EBEC; white-space: pre-wrap;
+    font-family: 'Inter', sans-serif;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+<div class="wrap" id="app" style="position: relative;">
+  <div class="header">
+    <div>
+      <div class="logo-row">
+        <div class="logo-icon">⏱</div>
+        <h1 class="vp-title">Vardiya Planlayıcı</h1>
+      </div>
+      <p class="subtitle">RUMELİ TOPÇU KALESİ</p>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+      <div class="weeknav">
+        <button id="prevWeek">‹</button>
+        <span class="range-label" id="rangeLabel"></span>
+        <button id="nextWeek">›</button>
+        <button class="today-btn" id="thisWeek">Bu hafta</button>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button class="share-btn" id="waShareBtn">💬 WhatsApp'a resim gönder</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="note-bar">
+    <textarea id="shareNote" placeholder="Not metnini yaz (başına otomatik 'NOT:' eklenir, ör. 'Hafta sonu değişiklik olursa haber verin')"></textarea>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <h2>Ekip (<span id="empCount">0</span>)</h2>
+      <div class="add-row">
+        <input id="newNameInput" placeholder="Yeni çalışan adı" />
+        <button id="addEmpBtn">+</button>
+      </div>
+      <div id="emptyHint" class="empty-hint">Henüz çalışan eklenmedi. Yukarıdan bir isim yazıp ekleyebilirsin.</div>
+      <div id="empList"></div>
+
+      <div class="legend">
+        <h3 class="section-title">Vardiya Türleri</h3>
+        <div id="shiftTypeList" style="margin-top:10px;"></div>
+        <div class="shift-row" style="margin-top:2px;">
+          <span class="legend-dot" style="background:#9AA3A1"></span>
+          <span class="name">İzinli</span>
+          <span class="hours">izin günü</span>
+          <span class="count" id="offCount">0</span>
+        </div>
+        <div class="new-shift-form">
+          <div class="row1">
+            <input type="text" id="newShiftName" placeholder="Vardiya adı (ör. Sabah)" />
+          </div>
+          <div class="row2">
+            <input type="time" id="newShiftStart" value="08:00" />
+            <span class="arrow">→</span>
+            <input type="time" id="newShiftEnd" value="16:00" />
+          </div>
+          <button id="addShiftTypeBtn">+ Vardiya türü ekle</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-panel">
+      <div id="gridEmpty" class="grid-empty">Vardiya atamaya başlamak için önce soldan bir çalışan ekle.</div>
+      <div id="gridEmptyTypes" class="grid-empty-types" style="display:none;">Vardiya atayabilmek için önce en az bir vardiya türü tanımla.</div>
+      <div id="gridScroll" class="grid-scroll" style="display:none;">
+        <table>
+          <thead><tr id="headRow"></tr></thead>
+          <tbody id="bodyRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="vp-signature">Tolgahan Yıldız</div>
+
+<script>
+const DAY_NAMES = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
+const MONTH_NAMES = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+const STORAGE_KEY = "vardiya-planlayici-v2";
+const OFF_ID = "off"; // izin günü için özel işaret
+const COLOR_PALETTE = [
+  { color: "#F0B429", bg: "rgba(240,180,41,0.16)" },
+  { color: "#6E8CFF", bg: "rgba(110,140,255,0.16)" },
+  { color: "#9AA6B8", bg: "rgba(154,166,184,0.14)" },
+  { color: "#4FB8A3", bg: "rgba(79,184,163,0.16)" },
+  { color: "#E08A4F", bg: "rgba(224,138,79,0.16)" },
+  { color: "#B08CE0", bg: "rgba(176,140,224,0.16)" },
+];
+
+function getMonday(d) {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+  date.setDate(diff);
+  date.setHours(0,0,0,0);
+  return date;
+}
+function addDays(date, n) { const d = new Date(date); d.setDate(d.getDate()+n); return d; }
+function dateKey(d) { return d.toISOString().slice(0,10); }
+function uid() { return Math.random().toString(36).slice(2,10); }
+
+function durationHours(start, end) {
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  let mins = (eh * 60 + em) - (sh * 60 + sm);
+  if (mins <= 0) mins += 24 * 60; // overnight shift
+  return Math.round((mins / 60) * 10) / 10;
+}
+
+// default seed shift types (user can edit/delete freely)
+let state = {
+  employees: [],
+  assignments: {},
+  shiftTypes: [
+    { id: uid(), label: "Sabah", start: "08:00", end: "16:00" },
+    { id: uid(), label: "Akşam", start: "16:00", end: "00:00" },
+    { id: uid(), label: "Gece",  start: "00:00", end: "08:00" },
+  ],
+};
+let weekStart = getMonday(new Date());
+let popoverEl = null;
+
+// Uses Claude's artifact storage when available (e.g. inside claude.ai),
+// otherwise falls back to the browser's own localStorage so the file
+// keeps working when opened directly / downloaded and run on its own.
+async function storageGet(key) {
+  if (window.storage && typeof window.storage.get === 'function') {
+    try { return await window.storage.get(key, false); } catch (e) { return null; }
+  }
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? { value: raw } : null;
+  } catch (e) { return null; }
+}
+async function storageSet(key, value) {
+  if (window.storage && typeof window.storage.set === 'function') {
+    try { return await window.storage.set(key, value, false); } catch (e) { showToast(); return null; }
+  }
+  try {
+    localStorage.setItem(key, value);
+    return { value };
+  } catch (e) {
+    showToast();
+    return null;
+  }
+}
+
+function showToast() {
+  if (document.getElementById('toastMsg')) return;
+  const t = document.createElement('div');
+  t.id = 'toastMsg';
+  t.className = 'toast';
+  t.textContent = 'Kayıt sırasında bir sorun oluştu.';
+  document.getElementById('app').appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+async function loadState() {
+  const result = await storageGet(STORAGE_KEY);
+  if (result && result.value) {
+    try {
+      const data = JSON.parse(result.value);
+      if (data.employees) state.employees = data.employees;
+      if (data.assignments) state.assignments = data.assignments;
+      if (data.shiftTypes && data.shiftTypes.length) state.shiftTypes = data.shiftTypes;
+    } catch (e) {}
+  }
+}
+async function saveState() {
+  await storageSet(STORAGE_KEY, JSON.stringify(state));
+}
+
+function cellKey(empId, dStr) { return empId + "_" + dStr; }
+function weekDates() { return Array.from({length:7}, (_,i) => addDays(weekStart, i)); }
+
+function getShiftType(id) { return state.shiftTypes.find(t => t.id === id); }
+function shiftColor(index) { return COLOR_PALETTE[index % COLOR_PALETTE.length]; }
+
+function weeklyHours(empId) {
+  let total = 0;
+  weekDates().forEach(d => {
+    const typeId = state.assignments[cellKey(empId, dateKey(d))];
+    const type = typeId ? getShiftType(typeId) : null;
+    if (type) total += durationHours(type.start, type.end);
+  });
+  return Math.round(total * 10) / 10;
+}
+function shiftCount(typeId) {
+  let count = 0;
+  Object.values(state.assignments).forEach(v => { if (v === typeId) count++; });
+  return count;
+}
+
+function render() {
+  const dates = weekDates();
+  const s = dates[0], e = dates[6];
+  document.getElementById('rangeLabel').textContent = s.getMonth() === e.getMonth()
+    ? `${s.getDate()}–${e.getDate()} ${MONTH_NAMES[s.getMonth()]} ${s.getFullYear()}`
+    : `${s.getDate()} ${MONTH_NAMES[s.getMonth()]} – ${e.getDate()} ${MONTH_NAMES[e.getMonth()]} ${e.getFullYear()}`;
+
+  document.getElementById('empCount').textContent = state.employees.length;
+  document.getElementById('emptyHint').style.display = state.employees.length ? 'none' : 'block';
+
+  // employee list
+  const empList = document.getElementById('empList');
+  empList.innerHTML = '';
+  state.employees.forEach(emp => {
+    const card = document.createElement('div');
+    card.className = 'emp-card';
+    card.innerHTML = `
+      <div>
+        <div class="emp-name"></div>
+        <div class="emp-hours">${weeklyHours(emp.id)} sa / hafta</div>
+      </div>
+      <button class="emp-del" data-id="${emp.id}">✕</button>
+    `;
+    card.querySelector('.emp-name').textContent = emp.name;
+    empList.appendChild(card);
+  });
+  empList.querySelectorAll('.emp-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      const emp = state.employees.find(e => e.id === id);
+      const hasAssignments = Object.keys(state.assignments).some(k => k.startsWith(id + "_"));
+      const msg = hasAssignments
+        ? `${emp ? emp.name : 'Bu çalışan'} silinsin mi? Tüm vardiya atamaları da silinecek.`
+        : `${emp ? emp.name : 'Bu çalışan'} silinsin mi?`;
+      if (!confirm(msg)) return;
+      state.employees = state.employees.filter(e => e.id !== id);
+      Object.keys(state.assignments).forEach(k => { if (k.startsWith(id + "_")) delete state.assignments[k]; });
+      saveState(); render();
+    });
+  });
+
+  // shift type list (editable)
+  const shiftTypeList = document.getElementById('shiftTypeList');
+  shiftTypeList.innerHTML = '';
+  if (state.shiftTypes.length === 0) {
+    const p = document.createElement('div');
+    p.className = 'empty-hint';
+    p.textContent = 'Henüz vardiya türü yok. Aşağıdan ekleyebilirsin.';
+    shiftTypeList.appendChild(p);
+  }
+  state.shiftTypes.forEach((type, idx) => {
+    const meta = shiftColor(idx);
+    const row = document.createElement('div');
+    row.className = 'shift-row';
+    row.innerHTML = `
+      <span class="legend-dot" style="background:${meta.color}"></span>
+      <span class="name"></span>
+      <span class="hours">${type.start}–${type.end}</span>
+      <span class="count">${shiftCount(type.id)}</span>
+      <button class="del" data-id="${type.id}">✕</button>
+    `;
+    row.querySelector('.name').textContent = type.label;
+    shiftTypeList.appendChild(row);
+  });
+  document.getElementById('offCount').textContent = shiftCount(OFF_ID);
+  shiftTypeList.querySelectorAll('.del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      const type = state.shiftTypes.find(t => t.id === id);
+      const usageCount = shiftCount(id);
+      const msg = usageCount > 0
+        ? `"${type ? type.label : 'Bu vardiya türü'}" silinsin mi? ${usageCount} atama etkilenecek ve temizlenecek.`
+        : `"${type ? type.label : 'Bu vardiya türü'}" silinsin mi?`;
+      if (!confirm(msg)) return;
+      state.shiftTypes = state.shiftTypes.filter(t => t.id !== id);
+      Object.keys(state.assignments).forEach(k => { if (state.assignments[k] === id) delete state.assignments[k]; });
+      saveState(); render();
+    });
+  });
+
+  // grid
+  const gridEmpty = document.getElementById('gridEmpty');
+  const gridEmptyTypes = document.getElementById('gridEmptyTypes');
+  const gridScroll = document.getElementById('gridScroll');
+  if (state.employees.length === 0) {
+    gridEmpty.style.display = 'block';
+    gridEmptyTypes.style.display = 'none';
+    gridScroll.style.display = 'none';
+    return;
+  }
+  if (state.shiftTypes.length === 0) {
+    gridEmpty.style.display = 'none';
+    gridEmptyTypes.style.display = 'block';
+    gridScroll.style.display = 'none';
+    return;
+  }
+  gridEmpty.style.display = 'none';
+  gridEmptyTypes.style.display = 'none';
+  gridScroll.style.display = 'block';
+
+  const headRow = document.getElementById('headRow');
+  headRow.innerHTML = '<th class="emp-col">Çalışan</th>' + dates.map((d,i) =>
+    `<th><div class="day-name">${DAY_NAMES[i]}</div><div class="day-num">${d.getDate()}</div></th>`
+  ).join('');
+
+  const bodyRows = document.getElementById('bodyRows');
+  bodyRows.innerHTML = '';
+  state.employees.forEach(emp => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="emp-col"><span class="emp-col-name"></span><button class="fill-week-btn" data-emp="${emp.id}" title="Bu haftanın tamamına aynı vardiyayı uygula">⟳</button></td>`;
+    tr.querySelector('.emp-col-name').textContent = emp.name;
+
+    dates.forEach(d => {
+      const dStr = dateKey(d);
+      const typeId = state.assignments[cellKey(emp.id, dStr)];
+      const typeIdx = typeId ? state.shiftTypes.findIndex(t => t.id === typeId) : -1;
+      const type = typeIdx >= 0 ? state.shiftTypes[typeIdx] : null;
+      const meta = typeIdx >= 0 ? shiftColor(typeIdx) : null;
+      const td = document.createElement('td');
+      td.className = 'cell';
+      if (typeId === OFF_ID) {
+        td.innerHTML = `<div class="chip chip-off">İzinli</div>`;
+      } else if (type) {
+        td.innerHTML = `<div class="chip" style="background:${meta.bg};color:${meta.color}">${type.label}<div class="range">${type.start}–${type.end}</div></div>`;
+      } else {
+        td.innerHTML = `<div class="empty-cell">+</div>`;
+      }
+      td.addEventListener('click', (e) => openPopover(e, emp.id, dStr));
+      tr.appendChild(td);
+    });
+    bodyRows.appendChild(tr);
+  });
+  bodyRows.querySelectorAll('.fill-week-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openWeekFillPopover(e, btn.getAttribute('data-emp'));
+    });
+  });
+}
+
+function openWeekFillPopover(evt, empId) {
+  closePopover();
+  const rect = evt.currentTarget.getBoundingClientRect();
+  const containerRect = document.getElementById('app').getBoundingClientRect();
+  const pop = document.createElement('div');
+  pop.className = 'popover';
+  pop.style.left = (rect.left - containerRect.left) + 'px';
+  pop.style.top = (rect.bottom - containerRect.top + 6) + 'px';
+
+  const heading = document.createElement('div');
+  heading.className = 'popover-heading';
+  heading.textContent = 'Bu haftanın tamamına uygula';
+  pop.appendChild(heading);
+
+  state.shiftTypes.forEach((type, idx) => {
+    const meta = shiftColor(idx);
+    const btn = document.createElement('button');
+    btn.innerHTML = `<span class="dot" style="background:${meta.color}"></span>${type.label} <span class="muted">(${type.start}–${type.end})</span>`;
+    btn.addEventListener('click', () => {
+      weekDates().forEach(d => { state.assignments[cellKey(empId, dateKey(d))] = type.id; });
+      saveState(); render(); closePopover();
+    });
+    pop.appendChild(btn);
+  });
+  const offBtn = document.createElement('button');
+  offBtn.className = 'off-btn';
+  offBtn.innerHTML = `<span class="dot" style="background:#9AA3A1"></span>İzinli <span class="muted">(izin günü)</span>`;
+  offBtn.addEventListener('click', () => {
+    weekDates().forEach(d => { state.assignments[cellKey(empId, dateKey(d))] = OFF_ID; });
+    saveState(); render(); closePopover();
+  });
+  pop.appendChild(offBtn);
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'clear-btn';
+  clearBtn.textContent = '✕ Haftayı temizle';
+  clearBtn.addEventListener('click', () => {
+    weekDates().forEach(d => { delete state.assignments[cellKey(empId, dateKey(d))]; });
+    saveState(); render(); closePopover();
+  });
+  pop.appendChild(clearBtn);
+
+  document.getElementById('app').appendChild(pop);
+  popoverEl = pop;
+}
+
+function closePopover() {
+  if (popoverEl) { popoverEl.remove(); popoverEl = null; }
+}
+
+function openPopover(evt, empId, dStr) {
+  closePopover();
+  const rect = evt.currentTarget.getBoundingClientRect();
+  const containerRect = document.getElementById('app').getBoundingClientRect();
+  const pop = document.createElement('div');
+  pop.className = 'popover';
+  pop.style.left = (rect.left - containerRect.left) + 'px';
+  pop.style.top = (rect.bottom - containerRect.top + 6) + 'px';
+
+  state.shiftTypes.forEach((type, idx) => {
+    const meta = shiftColor(idx);
+    const btn = document.createElement('button');
+    btn.innerHTML = `<span class="dot" style="background:${meta.color}"></span>${type.label} <span class="muted">(${type.start}–${type.end})</span>`;
+    btn.addEventListener('click', () => {
+      state.assignments[cellKey(empId, dStr)] = type.id;
+      saveState(); render(); closePopover();
+    });
+    pop.appendChild(btn);
+  });
+  const offBtn = document.createElement('button');
+  offBtn.className = 'off-btn';
+  offBtn.innerHTML = `<span class="dot" style="background:#9AA3A1"></span>İzinli <span class="muted">(izin günü)</span>`;
+  offBtn.addEventListener('click', () => {
+    state.assignments[cellKey(empId, dStr)] = OFF_ID;
+    saveState(); render(); closePopover();
+  });
+  pop.appendChild(offBtn);
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'clear-btn';
+  clearBtn.textContent = '✕ Temizle';
+  clearBtn.addEventListener('click', () => {
+    delete state.assignments[cellKey(empId, dStr)];
+    saveState(); render(); closePopover();
+  });
+  pop.appendChild(clearBtn);
+
+  document.getElementById('app').appendChild(pop);
+  popoverEl = pop;
+  evt.stopPropagation();
+}
+
+document.addEventListener('click', (e) => {
+  if (popoverEl && !popoverEl.contains(e.target)) closePopover();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closePopover();
+});
+
+document.getElementById('prevWeek').addEventListener('click', () => { weekStart = addDays(weekStart, -7); render(); });
+document.getElementById('nextWeek').addEventListener('click', () => { weekStart = addDays(weekStart, 7); render(); });
+document.getElementById('thisWeek').addEventListener('click', () => { weekStart = getMonday(new Date()); render(); });
+document.getElementById('addEmpBtn').addEventListener('click', addEmployee);
+document.getElementById('newNameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') addEmployee(); });
+document.getElementById('addShiftTypeBtn').addEventListener('click', addShiftType);
+document.getElementById('waShareBtn').addEventListener('click', shareToWhatsApp);
+
+function insertNoteForCapture() {
+  const noteText = document.getElementById('shareNote').value.trim();
+  if (!noteText) return null;
+  const noteEl = document.createElement('div');
+  noteEl.className = 'capture-note';
+  noteEl.textContent = 'NOT: ' + noteText;
+  const gridPanel = document.querySelector('.grid-panel');
+  gridPanel.insertBefore(noteEl, gridPanel.firstChild);
+  return noteEl;
+}
+
+// Web Share API requires navigator.share() to be called synchronously
+// within a fresh user tap. html2canvas takes time to render, so by the
+// time the image is ready the original tap's "permission" has expired
+// on many phones. Fix: render the image first, then show a small
+// preview with its own "Gönder" button — tapping THAT button is a brand
+// new, fresh gesture, so the share call fires right away and works.
+function shareToWhatsApp() {
+  if (typeof html2canvas === 'undefined') {
+    alert('Görsel oluşturma özelliği için internet bağlantısı gerekiyor. Bunun yerine "Görsel olarak kaydet" ile resmi indirip WhatsApp\'a elle ekleyebilirsin.');
+    return;
+  }
+  const waBtn = document.getElementById('waShareBtn');
+  waBtn.disabled = true;
+  const originalLabel = waBtn.textContent;
+  waBtn.textContent = '⏳ Hazırlanıyor…';
+
+  const dateLabel = document.getElementById('rangeLabel').textContent;
+  const noteEl = insertNoteForCapture();
+  const target = document.querySelector('.grid-panel');
+  html2canvas(target, { backgroundColor: '#14171A', scale: 2 }).then(canvas => {
+    if (noteEl) noteEl.remove();
+    waBtn.disabled = false;
+    waBtn.textContent = originalLabel;
+    canvas.toBlob((blob) => {
+      if (!blob) { fallbackDownload(canvas, dateLabel); return; }
+      const file = new File([blob], `vardiya-${dateLabel.replace(/\s+/g, '_')}.png`, { type: 'image/png' });
+      showSharePreview(canvas, file, dateLabel);
+    }, 'image/png');
+  }).catch(() => {
+    if (noteEl) noteEl.remove();
+    waBtn.disabled = false;
+    waBtn.textContent = originalLabel;
+    alert('Görsel oluşturulamadı. Bunun yerine cihazının kendi ekran görüntüsü alma tuşlarını kullanabilirsin.');
+  });
+}
+
+function showSharePreview(canvas, file, dateLabel) {
+  const overlay = document.createElement('div');
+  overlay.className = 'preview-overlay';
+
+  const box = document.createElement('div');
+  box.className = 'preview-box';
+
+  const img = document.createElement('img');
+  img.src = canvas.toDataURL('image/png');
+  box.appendChild(img);
+
+  const actions = document.createElement('div');
+  actions.className = 'preview-actions';
+
+  const canShareFiles = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+
+  if (canShareFiles) {
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'share-btn primary';
+    shareBtn.textContent = '💬 WhatsApp\'a Gönder';
+    shareBtn.addEventListener('click', () => {
+      // Called directly from this tap — a fresh gesture — so it works.
+      navigator.share({ files: [file], title: 'Vardiya Planı', text: `Vardiya Planı — ${dateLabel}` })
+        .then(() => overlay.remove())
+        .catch(() => { /* user cancelled the native share sheet, keep preview open */ });
+    });
+    actions.appendChild(shareBtn);
+  } else {
+    const hint = document.createElement('p');
+    hint.className = 'preview-hint';
+    hint.textContent = 'Bu cihaz/tarayıcı doğrudan paylaşımı desteklemiyor. Resmi indirip WhatsApp\'ta galeriden seçip gönderebilirsin.';
+    box.appendChild(hint);
+  }
+
+  const downloadBtn = document.createElement('button');
+  downloadBtn.className = 'share-btn';
+  downloadBtn.textContent = '⬇️ İndir';
+  downloadBtn.addEventListener('click', () => fallbackDownload(canvas, dateLabel));
+  actions.appendChild(downloadBtn);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'share-btn';
+  closeBtn.textContent = 'Kapat';
+  closeBtn.addEventListener('click', () => overlay.remove());
+  actions.appendChild(closeBtn);
+
+  box.appendChild(actions);
+  overlay.appendChild(box);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function fallbackDownload(canvas, dateLabel) {
+  const link = document.createElement('a');
+  link.download = `vardiya-${dateLabel.replace(/\s+/g, '_')}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+function addEmployee() {
+  const input = document.getElementById('newNameInput');
+  const name = input.value.trim();
+  if (!name) return;
+  const isDuplicate = state.employees.some(e => e.name.toLowerCase() === name.toLowerCase());
+  if (isDuplicate && !confirm(`"${name}" isimli bir çalışan zaten var. Yine de aynı isimle bir tane daha eklemek istiyor musun?`)) {
+    return;
+  }
+  state.employees.push({ id: uid(), name });
+  input.value = '';
+  saveState(); render();
+  input.focus();
+}
+
+function addShiftType() {
+  const nameInput = document.getElementById('newShiftName');
+  const startInput = document.getElementById('newShiftStart');
+  const endInput = document.getElementById('newShiftEnd');
+  const label = nameInput.value.trim();
+  const start = startInput.value;
+  const end = endInput.value;
+  if (!label) { nameInput.focus(); return; }
+  if (!start || !end) return;
+  if (start === end) {
+    alert('Başlangıç ve bitiş saati aynı olamaz.');
+    return;
+  }
+  const isDuplicate = state.shiftTypes.some(t => t.label.toLowerCase() === label.toLowerCase());
+  if (isDuplicate && !confirm(`"${label}" isimli bir vardiya türü zaten var. Yine de eklemek istiyor musun?`)) {
+    return;
+  }
+  state.shiftTypes.push({ id: uid(), label, start, end });
+  nameInput.value = '';
+  saveState(); render();
+  nameInput.focus();
+}
+
+(async function init() {
+  await loadState();
+  render();
+})();
+
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
